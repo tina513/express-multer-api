@@ -1,7 +1,17 @@
 'use strict';
 
+require('dotenv').config();
+
 const  fs = require('fs');
 const fileType = require('file-type');
+const AWS = require('aws-sdk');
+
+const s3 = new AWS.S3({
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY,
+    secretAccessKey: process.env.AWS_SECRTE_ACCESS_KEY,
+  }
+});
 
 const mimeType = (data) => {
   return Object.assign({
@@ -31,8 +41,19 @@ const awsUpload = (file) => {
     ContentType: file.mime,
     Key: `test/test.${file.ext}`
   };
-  return Promise.resolve(options);
-}
+
+  return new Promise((resolve, reject)=>{
+      s3.upload(options, (error, data)=>{
+        if (error) {
+          reject(error);
+        }
+
+        resolve(data);
+      });
+  });
+
+  // return Promise.resolve(options);
+};
 
 readFile(filename)
 .then((data) => {
